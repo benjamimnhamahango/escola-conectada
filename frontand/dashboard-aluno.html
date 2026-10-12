@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Aluno</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .aluno-info {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 16px 20px;
+            background: var(--white);
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+        .aluno-info .avatar {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .aluno-info .info-nome {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .aluno-info .info-turma {
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+        .nota-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .nota-item:last-child { border-bottom: none; }
+        .nota-item .disciplina {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .nota-item .trimestre {
+            font-size: 11px;
+            color: var(--gray-400);
+        }
+        .nota-item .notas-detalhe {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+        .nota-item .notas-detalhe span {
+            background: var(--gray-100);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .nota-item .media {
+            font-weight: 700;
+            font-size: 20px;
+            min-width: 60px;
+            text-align: right;
+        }
+        .media-boa { color: var(--success); }
+        .media-fraca { color: var(--danger); }
+        .mensagem-aluno {
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-left: 4px solid var(--primary);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+        }
+        .mensagem-aluno .remetente {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .mensagem-aluno .assunto {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        .mensagem-aluno .conteudo {
+            font-size: 14px;
+            margin-top: 4px;
+            color: var(--gray-600);
+        }
+        .mensagem-aluno .data {
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-top: 4px;
+        }
+        .tpc-aluno {
+            padding: 12px 16px;
+            border-left: 4px solid var(--warning);
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+        }
+        .tpc-aluno .titulo {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .tpc-aluno .descricao {
+            font-size: 14px;
+            color: var(--gray-600);
+            margin-top: 4px;
+        }
+        .tpc-aluno .meta {
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-top: 6px;
+        }
+        .empty-msg {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+        .empty-msg .icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+        .presenca-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 14px;
+        }
+        .presenca-item:last-child { border-bottom: none; }
+        .presenca-item .data {
+            font-weight: 500;
+        }
+        .badge-presente {
+            background: #dcfce7;
+            color: #166534;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-falta {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-entregue {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-pendente {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <div class="logo-icon">📚</div>
+                <div class="logo-text">
+                    Escola Modelo
+                    <small>Portal do Aluno</small>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <div>
+                        <div class="user-name" id="alunoNome">Aluno</div>
+                        <div class="user-role">👨‍🎓 Aluno</div>
+                    </div>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="logout()"
+                    style="border-color: rgba(255,255,255,0.3); color: white;">
+                    Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <main class="container" style="padding-top: 24px; padding-bottom: 40px;">
+
+        <!-- Info do Aluno -->
+        <div class="aluno-info" id="alunoInfo">
+            <div class="avatar" id="alunoAvatar">?</div>
+            <div>
+                <div class="info-nome" id="infoNome">A carregar...</div>
+                <div class="info-turma" id="infoTurma">-</div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="mediaGeral">-</div>
+                <div class="stat-label">📈 Média Geral</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="presencasTotal">-</div>
+                <div class="stat-label">✅ Presenças</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="faltasTotal">-</div>
+                <div class="stat-label">❌ Faltas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="tpcTotal">-</div>
+                <div class="stat-label">📝 TPCs</div>
+            </div>
+        </div>
+
+        <!-- Grid: Notas + Presenças -->
+        <div class="grid grid-2" style="gap: 24px;">
+
+            <!-- Notas por Disciplina -->
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 16px;">📊 As Minhas Notas</h3>
+                <div id="notasDisciplinas">
+                    <div class="empty-msg">
+                        <div class="icon">⏳</div>
+                        <p>A carregar notas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Presenças Recentes -->
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 16px;">✅ Presenças Recentes</h3>
+                <div id="presencasLista">
+                    <div class="empty-msg">
+                        <div class="icon">⏳</div>
+                        <p>A carregar presenças...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TPCs -->
+        <div class="card" style="margin-top: 24px;">
+            <h3 class="card-title" style="margin-bottom: 16px;">📝 TPCs / Trabalhos</h3>
+            <div id="tpcLista">
+                <div class="empty-msg">
+                    <div class="icon">⏳</div>
+                    <p>A carregar TPCs...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensagens -->
+        <div class="card" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 class="card-title" style="margin: 0;">💬 Mensagens</h3>
+                <button class="btn btn-primary btn-sm" onclick="abrirModalNovaMensagem()">
+                    ✉️ Nova Mensagem
+                </button>
+            </div>
+            <div id="mensagensLista">
+                <div class="empty-msg">
+                    <div class="icon">⏳</div>
+                    <p>A carregar mensagens...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== HISTÓRICO DE PRESENÇAS ===== -->
+        <div class="card" style="margin-top: 24px;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--gray-100);">
+                <h3 class="card-title" style="margin: 0;">📅 Histórico de Presenças</h3>
+            </div>
+
+            <!-- Filtros -->
+            <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                <select class="form-control" id="filtroDisciplinaPresenca" style="max-width: 200px;" onchange="carregarHistoricoPresencas()">
+                    <option value="">Todas as Disciplinas</option>
+                </select>
+                <select class="form-control" id="filtroMesPresenca" style="max-width: 150px;" onchange="carregarHistoricoPresencas()">
+                    <option value="">Todos os Meses</option>
+                    <option value="01">Janeiro</option>
+                    <option value="02">Fevereiro</option>
+                    <option value="03">Março</option>
+                    <option value="04">Abril</option>
+                    <option value="05">Maio</option>
+                    <option value="06">Junho</option>
+                    <option value="07">Julho</option>
+                    <option value="08">Agosto</option>
+                    <option value="09">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+                <select class="form-control" id="filtroAnoPresenca" style="max-width: 120px;" onchange="carregarHistoricoPresencas()">
+                    <option value="">Todos os Anos</option>
+                    <option value="2026" selected>2026</option>
+                    <option value="2025">2025</option>
+                </select>
+            </div>
+
+            <!-- Estatísticas do Histórico -->
+            <div id="statsHistorico" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; padding: 12px 16px; background: var(--gray-50); border-radius: var(--radius);">
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: var(--primary);" id="histTotal">-</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">📊 Total</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: var(--success);" id="histPresencas">-</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">✅ Presenças</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: var(--danger);" id="histFaltas">-</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">❌ Faltas</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: var(--secondary);" id="histPercentual">-</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">📈 Assiduidade</div>
+                </div>
+            </div>
+
+            <!-- Tabela de Presenças -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Disciplina</th>
+                            <th>Turma</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historicoPresencasTable">
+                        <tr>
+                            <td colspan="4" class="text-center" style="color: var(--gray-400);">Sem presenças registadas</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="srcpt.js"></script>
+    <script src="dash_Board_aluno.js"></script>
+</body>
+
+</html>

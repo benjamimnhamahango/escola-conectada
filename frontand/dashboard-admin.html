@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-400);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .turma-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .turma-item:hover {
+            background: var(--gray-50);
+            border-color: var(--primary);
+        }
+
+        .turma-item .info {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .turma-item .badge {
+            font-size: 12px;
+        }
+
+        .badge-manha {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-tarde {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-noite {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .badge-aluno {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-professor {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-pai {
+            background: #fce7f3;
+            color: #9d174d;
+        }
+
+        .badge-admin {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .turma-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .aluno-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            margin-bottom: 4px;
+        }
+
+        .aluno-item .aluno-info {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray-400);
+        }
+
+        .modal-close:hover {
+            color: var(--gray-600);
+        }
+
+        .select-aluno {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .filtro-usuarios {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-usuarios .form-control {
+            max-width: 250px;
+        }
+
+        .associacao-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            margin-bottom: 6px;
+        }
+
+        .grid-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-box {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-box .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-box .label {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        .table-simples {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-simples th,
+        .table-simples td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 14px;
+        }
+
+        .table-simples th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 13px;
+        }
+
+        .comunicado-item {
+            padding: 12px 16px;
+            border-left: 4px solid var(--primary);
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <div class="logo-icon">📚</div>
+                <div class="logo-text">
+                    Escola Modelo
+                    <small>Painel Administrativo</small>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <div>
+                        <div class="user-name" id="adminNome">Administrador</div>
+                        <div class="user-role">👨‍💼 Admin</div>
+                    </div>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="logout()"
+                    style="border-color: rgba(255,255,255,0.3); color: white;">
+                    Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="padding-top: 24px; padding-bottom: 40px;">
+        <h1 style="margin-bottom: 24px;">👨‍💼 Painel do Administrador</h1>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalTurmas">0</div>
+                <div class="stat-label">🏫 Turmas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalProfessores">0</div>
+                <div class="stat-label">👨‍🏫 Professores</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalPais">0</div>
+                <div class="stat-label">👨‍👦 Pais</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalAlunos">0</div>
+                <div class="stat-label">👨‍🎓 Alunos</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="turmas">🏫 Turmas</button>
+            <button class="tab-btn" data-tab="usuarios">👥 Usuários</button>
+            <button class="tab-btn" data-tab="alocacoes">🔗 Alocações</button>
+            <button class="tab-btn" data-tab="estatisticas">📊 Estatísticas</button>
+            <button class="tab-btn" data-tab="notas">📈 Notas</button>
+            <button class="tab-btn" data-tab="presencas">📅 Presenças</button>
+            <button class="tab-btn" data-tab="comunicados">💬 Comunicados</button>
+        </div>
+
+        <!-- ABA: TURMAS -->
+        <div class="tab-content active" id="tabTurmas">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">➕ Criar Nova Turma</h3>
+                </div>
+                <form id="turmaForm" class="form-row">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Nome da Turma</label>
+                        <input type="text" class="form-control" id="turmaNome" placeholder="Ex: 9º A" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Ano</label>
+                        <select class="form-control" id="turmaAno" required>
+                            <option value="">Selecione...</option>
+                            <option value="1">1º Ano</option>
+                            <option value="2">2º Ano</option>
+                            <option value="3">3º Ano</option>
+                            <option value="4">4º Ano</option>
+                            <option value="5">5º Ano</option>
+                            <option value="6">6º Ano</option>
+                            <option value="7">7º Ano</option>
+                            <option value="8">8º Ano</option>
+                            <option value="9">9º Ano</option>
+                            <option value="10">10º Ano</option>
+                            <option value="11">11º Ano</option>
+                            <option value="12">12º Ano</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Turno</label>
+                        <select class="form-control" id="turmaTurno" required>
+                            <option value="">Selecione...</option>
+                            <option value="manha">Manhã</option>
+                            <option value="tarde">Tarde</option>
+                            <option value="noite">Noite</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="height: 44px;">Criar Turma</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🏫 Turmas e Alunos</h3>
+                    <button class="btn btn-success btn-sm" onclick="carregarTudo()">🔄 Atualizar</button>
+                </div>
+                <div id="turmasLista">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Carregando turmas...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: USUÁRIOS -->
+        <div class="tab-content" id="tabUsuarios">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">➕ Criar Novo Usuário</h3>
+                </div>
+                <form id="usuarioForm">
+                    <div class="grid-form">
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Usuário</label>
+                            <select class="form-control" id="usuarioTipo" required>
+                                <option value="professor">👨‍🏫 Professor</option>
+                                <option value="pai">👨‍👦 Pai/Responsável</option>
+                                <option value="aluno">👨‍🎓 Aluno</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="usuarioNome" placeholder="Nome do usuário"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="usuarioEmail" placeholder="email@escola.com"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="usuarioSenha"
+                                placeholder="Mínimo 6 caracteres" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Telefone</label>
+                            <input type="text" class="form-control" id="usuarioTelefone" placeholder="Ex: 912345678">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Data de Nascimento</label>
+                            <input type="date" class="form-control" id="usuarioDataNascimento">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4">➕ Criar Usuário</button>
+                </form>
+            </div>
+
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">📋 Lista de Usuários</h3>
+                    <button class="btn btn-success btn-sm" onclick="carregarUsuarios()">🔄 Atualizar</button>
+                </div>
+                <div class="filtro-usuarios">
+                    <select class="form-control" id="filtroTipo" onchange="carregarUsuarios()">
+                        <option value="">Todos os tipos</option>
+                        <option value="professor">👨‍🏫 Professores</option>
+                        <option value="pai">👨‍👦 Pais</option>
+                        <option value="aluno">👨‍🎓 Alunos</option>
+                        <option value="admin">👨‍💼 Admins</option>
+                    </select>
+                    <input type="text" class="form-control" id="filtroNome" placeholder="🔍 Buscar por nome..."
+                        oninput="carregarUsuarios()">
+                </div>
+                <div id="usuariosLista">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Carregando usuários...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🔗 Associar Pai a Aluno</h3>
+                </div>
+                <form id="associacaoForm" class="form-row">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Pai/Responsável</label>
+                        <select class="form-control" id="selectPai" required>
+                            <option value="">Selecione o pai...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Aluno</label>
+                        <select class="form-control" id="selectAluno" required>
+                            <option value="">Selecione o aluno...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Parentesco</label>
+                        <select class="form-control" id="selectParentesco">
+                            <option value="pai">Pai</option>
+                            <option value="mae">Mãe</option>
+                            <option value="tutor">Tutor</option>
+                            <option value="avo">Avô/Avó</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="height: 44px;">🔗 Associar</button>
+                </form>
+                <hr style="margin: 24px 0; border-color: var(--gray-200);">
+                <h4 style="margin-bottom: 12px;">📋 Associações Existentes</h4>
+                <div id="associacoesLista">
+                    <div class="empty-state">
+                        <p>Carregando associações...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: ALOCAÇÕES -->
+        <div class="tab-content" id="tabAlocacoes">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">➕ Alocar Professor a Disciplina/Turma</h3>
+                </div>
+                <form id="alocacaoForm">
+                    <div class="grid-form">
+                        <div class="form-group">
+                            <label class="form-label">Professor</label>
+                            <select class="form-control" id="selectProfessorAloc" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Disciplina</label>
+                            <select class="form-control" id="selectDisciplinaAloc" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Turma</label>
+                            <select class="form-control" id="selectTurmaAloc" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ano Letivo</label>
+                            <input type="number" class="form-control" id="anoLetivoAloc" value="2026" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4">➕ Alocar Professor</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📋 Alocações Existentes</h3>
+                    <button class="btn btn-success btn-sm" onclick="carregarAlocacoes()">🔄 Atualizar</button>
+                </div>
+                <div id="alocacoesLista">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Carregando alocações...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: ESTATÍSTICAS -->
+        <div class="tab-content" id="tabEstatisticas">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">📊 Estatísticas por Turma</h3>
+                    <select class="form-control" id="selectTurmaStats" style="max-width: 250px;"
+                        onchange="carregarEstatisticas()">
+                        <option value="">Selecione uma turma...</option>
+                    </select>
+                </div>
+                <div id="statsTurma">
+                    <div class="empty-state">
+                        <div class="icon">📊</div>
+                        <p>Selecione uma turma para ver as estatísticas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: NOTAS -->
+        <div class="tab-content" id="tabNotas">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">📈 Notas por Turma e Disciplina</h3>
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+                    <select class="form-control" id="selectTurmaNotas" style="max-width: 250px;"
+                        onchange="carregarNotas()">
+                        <option value="">Selecione uma turma...</option>
+                    </select>
+                    <select class="form-control" id="selectDisciplinaNotas" style="max-width: 250px;"
+                        onchange="carregarNotas()">
+                        <option value="">Selecione uma disciplina...</option>
+                    </select>
+                </div>
+                <div id="notasTurma">
+                    <div class="empty-state">
+                        <div class="icon">📈</div>
+                        <p>Selecione turma e disciplina</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: PRESENÇAS -->
+        <div class="tab-content" id="tabPresencas">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">📅 Presenças por Turma</h3>
+                    <select class="form-control" id="selectTurmaPresencas" style="max-width: 250px;"
+                        onchange="carregarPresencas()">
+                        <option value="">Selecione uma turma...</option>
+                    </select>
+                </div>
+                <div id="presencasTurma">
+                    <div class="empty-state">
+                        <div class="icon">📅</div>
+                        <p>Selecione uma turma para ver as presenças</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA: COMUNICADOS -->
+        <div class="tab-content" id="tabComunicados">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h3 class="card-title">💬 Enviar Comunicado</h3>
+                </div>
+                <form id="comunicadoForm">
+                    <div class="form-group">
+                        <label class="form-label">📢 Destinatários</label>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                            <button type="button" class="btn btn-outline btn-sm"
+                                onclick="selecionarTodosDest('professor')">👨‍🏫 Todos Professores</button>
+                            <button type="button" class="btn btn-outline btn-sm"
+                                onclick="selecionarTodosDest('pai')">👨‍👦 Todos Pais</button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="limparDestinatarios()">🗑️
+                                Limpar</button>
+                        </div>
+                        <div id="listaDestinatarios"
+                            style="max-height: 300px; overflow-y: auto; border: 2px solid var(--gray-200); border-radius: var(--radius); padding: 12px;">
+                            <div class="empty-state" style="padding: 12px;">
+                                <p>A carregar destinatários...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">📋 Assunto</label>
+                        <input type="text" class="form-control" id="comunicadoAssunto" placeholder="Ex: Reunião de Pais"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">💬 Mensagem</label>
+                        <textarea class="form-control" id="comunicadoConteudo" placeholder="Escreva o comunicado..."
+                            required style="min-height: 120px; resize: vertical;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">📤 Enviar Comunicado</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📤 Comunicados Enviados</h3>
+                    <button class="btn btn-success btn-sm" onclick="carregarComunicadosEnviados()">🔄 Atualizar</button>
+                </div>
+                <div id="comunicadosEnviadosLista">
+                    <div class="empty-state">
+                        <div class="icon">⏳</div>
+                        <p>Carregando...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="modalAluno">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>➕ Adicionar Aluno à Turma</h3>
+                <button class="modal-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <form id="formAdicionarAluno">
+                <input type="hidden" id="modalTurmaId">
+                <div class="form-group">
+                    <label class="form-label">Selecione o Aluno</label>
+                    <select class="select-aluno" id="selectAlunoModal" required>
+                        <option value="">Carregando alunos...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ano Letivo</label>
+                    <input type="number" class="form-control" id="modalAnoLetivo" value="2026" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">Matricular Aluno</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="srcpt.js"></script>
+    <script>
+        let turmasData = [];
+        let usuariosData = [];
+        let professoresData = [];
+        let paisData = [];
+        let alunosData = [];
+        let disciplinasData = [];
+        let alocacoesData = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!verificarAuth()) return;
+            if (usuarioAtual.tipo !== 'admin') {
+                showToast('Acesso negado!', 'error');
+                window.location.href = '/';
+                return;
+            }
+
+            document.getElementById('adminNome').textContent = usuarioAtual.nome || 'Administrador';
+
+            configurarTabs();
+            configurarFormularios();
+            await carregarTudo();
+        });
+
+        async function carregarTudo() {
+            await Promise.all([
+                carregarTurmas(),
+                carregarUsuarios(),
+                carregarDisciplinas(),
+                carregarAlocacoes(),
+                carregarAssociacoes()
+            ]);
+            await carregarStats();
+            await preencherSelectsAdmin();
+            await carregarDestinatarios();
+            await carregarComunicadosEnviados();
+        }
+
+        async function carregarStats() {
+            document.getElementById('totalTurmas').textContent = turmasData.length;
+            document.getElementById('totalProfessores').textContent = professoresData.length;
+            document.getElementById('totalPais').textContent = paisData.length;
+            document.getElementById('totalAlunos').textContent = alunosData.length;
+        }
+
+        function configurarTabs() {
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function () {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const tabId = this.dataset.tab;
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    const target = document.getElementById(`tab${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
+                    if (target) target.classList.add('active');
+
+                    if (tabId === 'estatisticas') preencherSelectsAdmin();
+                    if (tabId === 'notas') preencherSelectsAdmin();
+                    if (tabId === 'presencas') preencherSelectsAdmin();
+                    if (tabId === 'comunicados') {
+                        carregarDestinatarios();
+                        carregarComunicadosEnviados();
+                    }
+                });
+            });
+        }
+
+        // ===== TURMAS =====
+        async function carregarTurmas() {
+            try {
+                const response = await fetch('/api/turmas', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                turmasData = await response.json();
+
+                for (const turma of turmasData) {
+                    const responseAlunos = await fetch(`/api/turmas/${turma.id}/alunos`, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    turma.alunos = await responseAlunos.json();
+                }
+
+                renderizarTurmas();
+            } catch (error) {
+                console.error('Erro turmas:', error);
+            }
+        }
+
+        function renderizarTurmas() {
+            const container = document.getElementById('turmasLista');
+            if (!container) return;
+
+            if (turmasData.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">🏫</div><p>Nenhuma turma cadastrada</p></div>';
+                return;
+            }
+
+            container.innerHTML = turmasData.map(turma => {
+                const alunosHtml = turma.alunos && turma.alunos.length > 0
+                    ? turma.alunos.map(aluno => `
+                        <div class="aluno-item">
+                            <div class="aluno-info">
+                                <span>👨‍🎓 ${aluno.nome}</span>
+                                <span style="font-size:13px; color:var(--gray-400);">${aluno.email}</span>
+                            </div>
+                            <button class="btn btn-danger btn-sm" onclick="removerAluno(${aluno.matricula_id})">✕</button>
+                        </div>
+                    `).join('')
+                    : '<span style="color:var(--gray-400); font-size:14px;">Nenhum aluno nesta turma</span>';
+
+                return `
+                    <div class="turma-item">
+                        <div class="info">
+                            <strong>${turma.nome}</strong>
+                            <span class="badge badge-info">${turma.ano}º Ano</span>
+                            <span class="badge ${turma.turno === 'manha' ? 'badge-manha' : turma.turno === 'tarde' ? 'badge-tarde' : 'badge-noite'}">
+                                ${turma.turno === 'manha' ? '🌅 Manhã' : turma.turno === 'tarde' ? '🌤️ Tarde' : '🌙 Noite'}
+                            </span>
+                            <span style="font-size:13px; color:var(--gray-400);">👨‍🎓 ${turma.alunos ? turma.alunos.length : 0} alunos</span>
+                        </div>
+                        <div class="turma-actions">
+                            <button class="btn btn-success btn-sm" onclick="abrirModalAdicionarAluno(${turma.id})">➕ Aluno</button>
+                            <button class="btn btn-danger btn-sm" onclick="excluirTurma(${turma.id})">🗑️</button>
+                        </div>
+                    </div>
+                    <div style="padding-left: 16px; margin-bottom: 12px; border-left: 3px solid var(--gray-200);">
+                        ${alunosHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ===== USUÁRIOS =====
+        async function carregarUsuarios() {
+            try {
+                const tipo = document.getElementById('filtroTipo')?.value || '';
+                const nome = document.getElementById('filtroNome')?.value || '';
+
+                const response = await fetch('/api/usuarios', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                usuariosData = await response.json();
+
+                professoresData = usuariosData.filter(u => u.tipo === 'professor');
+                paisData = usuariosData.filter(u => u.tipo === 'pai');
+                alunosData = usuariosData.filter(u => u.tipo === 'aluno');
+
+                let filtrados = usuariosData;
+                if (tipo) filtrados = filtrados.filter(u => u.tipo === tipo);
+                if (nome) filtrados = filtrados.filter(u => u.nome.toLowerCase().includes(nome.toLowerCase()));
+
+                renderizarUsuarios(filtrados);
+                preencherSelectsUsuarios();
+            } catch (error) {
+                console.error('Erro usuários:', error);
+            }
+        }
+
+        function renderizarUsuarios(usuarios) {
+            const container = document.getElementById('usuariosLista');
+            if (!container) return;
+
+            if (usuarios.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>Nenhum usuário encontrado</p></div>';
+                return;
+            }
+
+            const badgeMap = { professor: 'badge-professor', pai: 'badge-pai', aluno: 'badge-aluno', admin: 'badge-admin' };
+            const iconMap = { professor: '👨‍🏫', pai: '👨‍👦', aluno: '👨‍🎓', admin: '👨‍💼' };
+
+            container.innerHTML = usuarios.map(u => `
+                <div class="turma-item">
+                    <div class="info">
+                        <span>${iconMap[u.tipo]} <strong>${u.nome}</strong></span>
+                        <span style="font-size:13px; color:var(--gray-500);">${u.email}</span>
+                        <span class="badge ${badgeMap[u.tipo]}">${u.tipo}</span>
+                        ${u.telefone ? `<span style="font-size:12px; color:var(--gray-400);">📞 ${u.telefone}</span>` : ''}
+                    </div>
+                    <div class="turma-actions">
+                        <button class="btn btn-danger btn-sm" onclick="removerUsuario(${u.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function preencherSelectsUsuarios() {
+            const selectPai = document.getElementById('selectPai');
+            if (selectPai) {
+                selectPai.innerHTML = '<option value="">Selecione o pai...</option>' +
+                    paisData.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+            }
+
+            const selectAluno = document.getElementById('selectAluno');
+            if (selectAluno) {
+                selectAluno.innerHTML = '<option value="">Selecione o aluno...</option>' +
+                    alunosData.map(a => `<option value="${a.id}">${a.nome}</option>`).join('');
+            }
+
+            const selectProf = document.getElementById('selectProfessorAloc');
+            if (selectProf) {
+                selectProf.innerHTML = '<option value="">Selecione...</option>' +
+                    professoresData.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+            }
+        }
+
+        // ===== ASSOCIAÇÕES =====
+        async function carregarAssociacoes() {
+            try {
+                const response = await fetch('/api/pais-alunos', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const associacoes = await response.json();
+                renderizarAssociacoes(associacoes);
+            } catch (error) {
+                console.error('Erro associações:', error);
+            }
+        }
+
+        function renderizarAssociacoes(associacoes) {
+            const container = document.getElementById('associacoesLista');
+            if (!container) return;
+
+            if (associacoes.length === 0) {
+                container.innerHTML = '<p style="color:var(--gray-400); text-align:center;">Nenhuma associação criada</p>';
+                return;
+            }
+
+            container.innerHTML = associacoes.map(a => `
+                <div class="associacao-item">
+                    <span>👨‍👦 <strong>${a.pai_nome}</strong> → 👨‍🎓 <strong>${a.aluno_nome}</strong></span>
+                    <button class="btn btn-danger btn-sm" onclick="removerAssociacao(${a.id})">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        // ===== DISCIPLINAS =====
+        async function carregarDisciplinas() {
+            try {
+                const response = await fetch('/api/disciplinas', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                disciplinasData = await response.json();
+
+                const select = document.getElementById('selectDisciplinaAloc');
+                if (select) {
+                    select.innerHTML = '<option value="">Selecione...</option>' +
+                        disciplinasData.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+                }
+
+                const selectDiscNotas = document.getElementById('selectDisciplinaNotas');
+                if (selectDiscNotas) {
+                    selectDiscNotas.innerHTML = '<option value="">Selecione uma disciplina...</option>' +
+                        disciplinasData.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Erro disciplinas:', error);
+            }
+        }
+
+        // ===== ALOCAÇÕES =====
+        async function carregarAlocacoes() {
+            try {
+                const response = await fetch('/api/alocacoes', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                alocacoesData = await response.json();
+                renderizarAlocacoes();
+
+                const selectTurma = document.getElementById('selectTurmaAloc');
+                if (selectTurma) {
+                    selectTurma.innerHTML = '<option value="">Selecione...</option>' +
+                        turmasData.map(t => `<option value="${t.id}">${t.nome}</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Erro alocações:', error);
+            }
+        }
+
+        function renderizarAlocacoes() {
+            const container = document.getElementById('alocacoesLista');
+            if (!container) return;
+
+            if (alocacoesData.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">🔗</div><p>Nenhuma alocação criada</p></div>';
+                return;
+            }
+
+            container.innerHTML = alocacoesData.map(a => `
+                <div class="turma-item">
+                    <div class="info">
+                        <strong>${a.turma_nome}</strong>
+                        <span class="badge badge-info">${a.disciplina_nome}</span>
+                        <span>👨‍🏫 ${a.professor_nome}</span>
+                        <span style="font-size:13px; color:var(--gray-400);">${a.carga_horaria}h</span>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="removerAlocacao(${a.id})">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        // ===== SELECTS ADMIN =====
+        async function preencherSelectsAdmin() {
+            const selectTurmaStats = document.getElementById('selectTurmaStats');
+            if (selectTurmaStats && selectTurmaStats.options.length <= 1) {
+                selectTurmaStats.innerHTML = '<option value="">Selecione uma turma...</option>' +
+                    turmasData.map(t => `<option value="${t.id}">${t.nome} (${t.ano}º Ano)</option>`).join('');
+            }
+
+            const selectTurmaNotas = document.getElementById('selectTurmaNotas');
+            if (selectTurmaNotas && selectTurmaNotas.options.length <= 1) {
+                selectTurmaNotas.innerHTML = '<option value="">Selecione uma turma...</option>' +
+                    turmasData.map(t => `<option value="${t.id}">${t.nome} (${t.ano}º Ano)</option>`).join('');
+            }
+
+            const selectTurmaPresencas = document.getElementById('selectTurmaPresencas');
+            if (selectTurmaPresencas && selectTurmaPresencas.options.length <= 1) {
+                selectTurmaPresencas.innerHTML = '<option value="">Selecione uma turma...</option>' +
+                    turmasData.map(t => `<option value="${t.id}">${t.nome} (${t.ano}º Ano)</option>`).join('');
+            }
+        }
+
+        // ===== ESTATÍSTICAS =====
+        async function carregarEstatisticas() {
+            const turmaId = document.getElementById('selectTurmaStats').value;
+            const container = document.getElementById('statsTurma');
+
+            if (!turmaId) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📊</div><p>Selecione uma turma</p></div>';
+                return;
+            }
+
+            container.innerHTML = '<div class="empty-state"><p>A carregar...</p></div>';
+
+            try {
+                const response = await fetch(`/api/admin/estatisticas-turma/${turmaId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (!response.ok) throw new Error('Erro');
+
+                const data = await response.json();
+
+                const disciplinasHtml = data.medias_por_disciplina.length > 0
+                    ? data.medias_por_disciplina.map(d => `
+                        <tr>
+                            <td>📖 ${d.disciplina_nome}</td>
+                            <td>${d.total_alunos} alunos</td>
+                            <td><strong>${d.media !== null ? d.media.toFixed(1) : '-'}</strong></td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="3" style="text-align: center; color: var(--gray-400);">Sem dados</td></tr>';
+
+                container.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px;">
+                        <div class="stat-box">
+                            <div class="value">${data.total_alunos}</div>
+                            <div class="label">👨‍🎓 Alunos</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" style="color: ${data.media_geral >= 10 ? 'var(--success)' : 'var(--danger)'};">
+                                ${data.media_geral !== null ? data.media_geral.toFixed(1) : '-'}
+                            </div>
+                            <div class="label">📈 Média Geral</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" style="color: ${data.assiduidade.percentual >= 75 ? 'var(--success)' : 'var(--warning)'};">
+                                ${data.assiduidade.percentual}%
+                            </div>
+                            <div class="label">✅ Assiduidade</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" style="color: var(--danger);">${data.assiduidade.faltas}</div>
+                            <div class="label">❌ Faltas</div>
+                        </div>
+                    </div>
+                    <h4 style="margin-bottom: 12px;">📚 Médias por Disciplina</h4>
+                    <table class="table-simples">
+                        <thead>
+                            <tr>
+                                <th>Disciplina</th>
+                                <th>Alunos</th>
+                                <th>Média</th>
+                            </tr>
+                        </thead>
+                        <tbody>${disciplinasHtml}</tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Erro:', error);
+                container.innerHTML = '<div class="empty-state"><p>Erro ao carregar estatísticas</p></div>';
+            }
+        }
+
+        // ===== NOTAS =====
+        async function carregarNotas() {
+            const turmaId = document.getElementById('selectTurmaNotas').value;
+            const disciplinaId = document.getElementById('selectDisciplinaNotas').value;
+            const container = document.getElementById('notasTurma');
+
+            if (!turmaId || !disciplinaId) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📈</div><p>Selecione turma e disciplina</p></div>';
+                return;
+            }
+
+            container.innerHTML = '<div class="empty-state"><p>A carregar...</p></div>';
+
+            try {
+                const response = await fetch(`/api/admin/notas-turma/${turmaId}/${disciplinaId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (!response.ok) throw new Error('Erro');
+
+                const notas = await response.json();
+
+                if (notas.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>Sem notas registadas</p></div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div style="overflow-x: auto;">
+                        <table class="table-simples">
+                            <thead>
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th colspan="4" style="text-align: center; background: #e0e7ff;">1º Trimestre</th>
+                                    <th colspan="4" style="text-align: center; background: #fef3c7;">2º Trimestre</th>
+                                    <th colspan="4" style="text-align: center; background: #dcfce7;">3º Trimestre</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th>ACS1</th><th>ACS2</th><th>AT</th><th>Média</th>
+                                    <th>ACS1</th><th>ACS2</th><th>AT</th><th>Média</th>
+                                    <th>ACS1</th><th>ACS2</th><th>AT</th><th>Média</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${notas.map(a => `
+                                    <tr>
+                                        <td><strong>${a.aluno_nome}</strong></td>
+                                        ${[1, 2, 3].map(t => {
+                    const tr = a.trimestres[`T${t}`];
+                    const media = tr.media;
+                    const cor = media !== null ? (media >= 10 ? 'var(--success)' : 'var(--danger)') : 'inherit';
+                    return `
+                                                <td>${tr.ACS1 !== null ? tr.ACS1 : '-'}</td>
+                                                <td>${tr.ACS2 !== null ? tr.ACS2 : '-'}</td>
+                                                <td>${tr.AT !== null ? tr.AT : '-'}</td>
+                                                <td style="font-weight: 700; color: ${cor};">${media !== null ? media.toFixed(1) : '-'}</td>
+                                            `;
+                }).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Erro:', error);
+                container.innerHTML = '<div class="empty-state"><p>Erro ao carregar notas</p></div>';
+            }
+        }
+
+        // ===== PRESENÇAS =====
+        async function carregarPresencas() {
+            const turmaId = document.getElementById('selectTurmaPresencas').value;
+            const container = document.getElementById('presencasTurma');
+
+            if (!turmaId) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Selecione uma turma</p></div>';
+                return;
+            }
+
+            container.innerHTML = '<div class="empty-state"><p>A carregar...</p></div>';
+
+            try {
+                const response = await fetch(`/api/admin/presencas-turma/${turmaId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (!response.ok) throw new Error('Erro');
+
+                const presencas = await response.json();
+
+                if (presencas.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>Sem presenças registadas</p></div>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <table class="table-simples">
+                        <thead>
+                            <tr>
+                                <th>Aluno</th>
+                                <th>Total</th>
+                                <th>✅ Presenças</th>
+                                <th>❌ Faltas</th>
+                                <th>📈 Assiduidade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${presencas.map(p => `
+                                <tr>
+                                    <td><strong>${p.aluno_nome}</strong></td>
+                                    <td>${p.total}</td>
+                                    <td style="color: var(--success);">${p.presencas}</td>
+                                    <td style="color: var(--danger);">${p.faltas}</td>
+                                    <td>
+                                        <strong style="color: ${p.percentual >= 75 ? 'var(--success)' : 'var(--warning)'};">
+                                            ${p.percentual}%
+                                        </strong>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Erro:', error);
+                container.innerHTML = '<div class="empty-state"><p>Erro ao carregar presenças</p></div>';
+            }
+        }
+
+        // ===== COMUNICADOS =====
+        async function carregarDestinatarios() {
+            const container = document.getElementById('listaDestinatarios');
+            if (!container) return;
+
+            try {
+                const response = await fetch('/api/admin/destinatarios', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (!response.ok) throw new Error('Erro');
+
+                const data = await response.json();
+
+                let html = '';
+
+                if (data.professores.length > 0) {
+                    html += '<h4 style="margin-bottom: 8px; color: var(--primary);">👨‍🏫 Professores</h4>';
+                    html += data.professores.map(p => `
+                        <label style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; cursor: pointer; border-radius: 4px;">
+                            <input type="checkbox" class="dest-check" data-id="${p.id}" data-nome="${p.nome}" data-tipo="professor">
+                            <span>${p.nome} <small style="color: var(--gray-400);">(${p.email})</small></span>
+                        </label>
+                    `).join('');
+                }
+
+                if (data.pais.length > 0) {
+                    html += '<h4 style="margin: 16px 0 8px 0; color: var(--secondary);">👨‍👦 Pais</h4>';
+                    html += data.pais.map(p => `
+                        <label style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; cursor: pointer; border-radius: 4px;">
+                            <input type="checkbox" class="dest-check" data-id="${p.id}" data-nome="${p.nome}" data-tipo="pai">
+                            <span>${p.nome} <small style="color: var(--gray-400);">(${p.email})${p.filhos ? ' — filhos: ' + p.filhos : ''}</small></span>
+                        </label>
+                    `).join('');
+                }
+
+                container.innerHTML = html || '<p style="color: var(--gray-400);">Sem destinatários</p>';
+            } catch (error) {
+                console.error('Erro:', error);
+                container.innerHTML = '<p style="color: var(--danger);">Erro ao carregar destinatários</p>';
+            }
+        }
+
+        function selecionarTodosDest(tipo) {
+            document.querySelectorAll(`.dest-check[data-tipo="${tipo}"]`).forEach(cb => {
+                cb.checked = true;
+            });
+            showToast(`✅ Todos os ${tipo === 'professor' ? 'professores' : 'pais'} selecionados`, 'success');
+        }
+
+        function limparDestinatarios() {
+            document.querySelectorAll('.dest-check').forEach(cb => cb.checked = false);
+            showToast('🗑️ Seleção limpa', 'info');
+        }
+
+        async function carregarComunicadosEnviados() {
+            const container = document.getElementById('comunicadosEnviadosLista');
+            if (!container) return;
+
+            try {
+                const response = await fetch('/api/mensagens/enviadas', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (!response.ok) throw new Error('Erro');
+
+                const mensagens = await response.json();
+
+                if (mensagens.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>Sem comunicados enviados</p></div>';
+                    return;
+                }
+
+                container.innerHTML = mensagens.slice(0, 20).map(m => `
+                    <div class="comunicado-item">
+                        <div style="font-weight: 600; color: var(--primary);">${m.assunto}</div>
+                        <div style="font-size: 14px; margin-top: 4px;">${m.conteudo}</div>
+                        <div style="font-size: 12px; color: var(--gray-400); margin-top: 6px;">
+                            📤 Para: ${m.destinatario_nome || 'Múltiplos'} • 📅 ${new Date(m.data_envio).toLocaleString('pt-PT')}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erro:', error);
+                container.innerHTML = '<p style="color: var(--danger);">Erro ao carregar comunicados</p>';
+            }
+        }
+
+        // ===== FORMULÁRIOS =====
+        function configurarFormularios() {
+            document.getElementById('turmaForm')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nome = document.getElementById('turmaNome').value.trim();
+                const ano = document.getElementById('turmaAno').value;
+                const turno = document.getElementById('turmaTurno').value;
+
+                if (!nome || !ano || !turno) {
+                    showToast('Preencha todos os campos!', 'warning');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/turmas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ nome, ano: parseInt(ano), turno })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.erro);
+                    showToast('✅ Turma criada!', 'success');
+                    e.target.reset();
+                    await carregarTurmas();
+                    await carregarStats();
+                    await preencherSelectsAdmin();
+                } catch (error) {
+                    showToast('❌ ' + error.message, 'error');
+                }
+            });
+
+            document.getElementById('usuarioForm')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const tipo = document.getElementById('usuarioTipo').value;
+                const nome = document.getElementById('usuarioNome').value.trim();
+                const email = document.getElementById('usuarioEmail').value.trim();
+                const senha = document.getElementById('usuarioSenha').value;
+                const telefone = document.getElementById('usuarioTelefone').value.trim();
+                const data_nascimento = document.getElementById('usuarioDataNascimento').value;
+
+                if (!tipo || !nome || !email || !senha) {
+                    showToast('Preencha os campos obrigatórios!', 'warning');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/usuarios', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ tipo, nome, email, senha, telefone, data_nascimento })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.erro);
+                    showToast('✅ Usuário criado!', 'success');
+                    e.target.reset();
+                    await carregarUsuarios();
+                    await carregarStats();
+                    await carregarDestinatarios();
+                } catch (error) {
+                    showToast('❌ ' + error.message, 'error');
+                }
+            });
+
+            document.getElementById('associacaoForm')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const pai_id = document.getElementById('selectPai').value;
+                const aluno_id = document.getElementById('selectAluno').value;
+                const parentesco = document.getElementById('selectParentesco').value;
+
+                if (!pai_id || !aluno_id) {
+                    showToast('Selecione o pai e o aluno!', 'warning');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/pais-alunos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ pai_id: parseInt(pai_id), aluno_id: parseInt(aluno_id), parentesco })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.erro);
+                    showToast('✅ Associação criada!', 'success');
+                    e.target.reset();
+                    await carregarAssociacoes();
+                    await carregarDestinatarios();
+                } catch (error) {
+                    showToast('❌ ' + error.message, 'error');
+                }
+            });
+
+            document.getElementById('alocacaoForm')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const professor_id = document.getElementById('selectProfessorAloc').value;
+                const disciplina_id = document.getElementById('selectDisciplinaAloc').value;
+                const turma_id = document.getElementById('selectTurmaAloc').value;
+                const ano_letivo = document.getElementById('anoLetivoAloc').value;
+
+                if (!professor_id || !disciplina_id || !turma_id) {
+                    showToast('Preencha todos os campos!', 'warning');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/alocacoes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({
+                            professor_id: parseInt(professor_id),
+                            disciplina_id: parseInt(disciplina_id),
+                            turma_id: parseInt(turma_id),
+                            ano_letivo: parseInt(ano_letivo),
+                            carga_horaria: 2
+                        })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.erro);
+                    showToast('✅ Alocação criada!', 'success');
+                    e.target.reset();
+                    await carregarAlocacoes();
+                } catch (error) {
+                    showToast('❌ ' + error.message, 'error');
+                }
+            });
+
+            document.getElementById('formAdicionarAluno')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const turma_id = document.getElementById('modalTurmaId').value;
+                const aluno_id = document.getElementById('selectAlunoModal').value;
+                const ano_letivo = document.getElementById('modalAnoLetivo').value;
+
+                if (!aluno_id) {
+                    showToast('Selecione um aluno!', 'warning');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/matriculas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({
+                            aluno_id: parseInt(aluno_id),
+                            turma_id: parseInt(turma_id),
+                            ano_letivo: parseInt(ano_letivo)
+                        })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.erro);
+                    showToast('✅ Aluno matriculado!', 'success');
+                    fecharModal();
+                    await carregarTurmas();
+                    await preencherSelectsAdmin();
+                } catch (error) {
+                    showToast('❌ ' + error.message, 'error');
+                }
+            });
+
+            // COMUNICADO
+            document.getElementById('comunicadoForm')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const checkboxes = document.querySelectorAll('.dest-check:checked');
+                if (checkboxes.length === 0) {
+                    showToast('Selecione pelo menos 1 destinatário!', 'warning');
+                    return;
+                }
+
+                const destinatarios = Array.from(checkboxes).map(cb => ({
+                    id: parseInt(cb.dataset.id),
+                    nome: cb.dataset.nome,
+                    tipo: cb.dataset.tipo
+                }));
+
+                const assunto = document.getElementById('comunicadoAssunto').value.trim();
+                const conteudo = document.getElementById('comunicadoConteudo').value.trim();
+
+                if (!assunto || !conteudo) {
+                    showToast('Preencha assunto e mensagem!', 'warning');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/admin/comunicado', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ destinatarios, assunto, conteudo })
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.erro || 'Erro');
+
+                    showToast(`✅ ${data.mensagem}`, 'success');
+                    e.target.reset();
+                    limparDestinatarios();
+                    await carregarComunicadosEnviados();
+                } catch (error) {
+                    showToast('❌ ' + error.message, 'error');
+                }
+            });
+        }
+
+        // ===== AÇÕES =====
+        async function abrirModalAdicionarAluno(turmaId) {
+            document.getElementById('modalTurmaId').value = turmaId;
+            document.getElementById('modalAluno').classList.add('active');
+
+            try {
+                const response = await fetch('/api/alunos/disponiveis', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const alunos = await response.json();
+
+                const select = document.getElementById('selectAlunoModal');
+                if (alunos.length === 0) {
+                    select.innerHTML = '<option value="">Não há alunos disponíveis</option>';
+                } else {
+                    select.innerHTML = '<option value="">Selecione...</option>' +
+                        alunos.map(a => `<option value="${a.id}">${a.nome} (${a.email})</option>`).join('');
+                }
+            } catch (error) {
+                showToast('Erro ao carregar alunos', 'error');
+            }
+        }
+
+        function fecharModal() {
+            document.getElementById('modalAluno').classList.remove('active');
+            document.getElementById('formAdicionarAluno').reset();
+        }
+
+        async function excluirTurma(id) {
+            if (!confirm('Excluir esta turma?')) return;
+            try {
+                const response = await fetch(`/api/turmas/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!response.ok) throw new Error('Erro');
+                showToast('✅ Turma excluída!', 'success');
+                await carregarTurmas();
+                await carregarStats();
+                await preencherSelectsAdmin();
+            } catch (error) {
+                showToast('❌ ' + error.message, 'error');
+            }
+        }
+
+        async function removerAluno(matriculaId) {
+            if (!confirm('Remover este aluno da turma?')) return;
+            try {
+                await fetch(`/api/matriculas/${matriculaId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                showToast('✅ Aluno removido!', 'success');
+                await carregarTurmas();
+            } catch (error) {
+                showToast('❌ Erro', 'error');
+            }
+        }
+
+        async function removerUsuario(id) {
+            if (!confirm('Remover este usuário?')) return;
+            try {
+                await fetch(`/api/usuarios/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                showToast('✅ Usuário removido!', 'success');
+                await carregarUsuarios();
+                await carregarStats();
+                await carregarDestinatarios();
+            } catch (error) {
+                showToast('❌ Erro', 'error');
+            }
+        }
+
+        async function removerAssociacao(id) {
+            if (!confirm('Remover esta associação?')) return;
+            try {
+                await fetch(`/api/pais-alunos/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                showToast('✅ Associação removida!', 'success');
+                await carregarAssociacoes();
+            } catch (error) {
+                showToast('❌ Erro', 'error');
+            }
+        }
+
+        async function removerAlocacao(id) {
+            if (!confirm('Remover esta alocação?')) return;
+            try {
+                await fetch(`/api/alocacoes/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                showToast('✅ Alocação removida!', 'success');
+                await carregarAlocacoes();
+            } catch (error) {
+                showToast('❌ Erro', 'error');
+            }
+        }
+
+        document.getElementById('modalAluno')?.addEventListener('click', function (e) {
+            if (e.target === this) fecharModal();
+        });
+
+        console.log('🚀 Dashboard Admin carregado!');
+    </script>
+</body>
+
+</html>

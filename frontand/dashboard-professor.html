@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Professor</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .turma-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 16px 20px;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            flex-wrap: wrap;
+        }
+        .turma-selector label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .turma-selector select {
+            padding: 10px 14px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            min-width: 250px;
+            background: var(--white);
+        }
+        .turma-selector select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .turma-info {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-left: auto;
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+        .turma-info .badge {
+            font-size: 12px;
+        }
+        .empty-msg {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+        .empty-msg .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .nota-input-group {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .nota-input-group input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+        }
+        .nota-input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 42, 108, 0.1);
+        }
+        .media-cell {
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .media-boa { color: var(--success); }
+        .media-fraca { color: var(--danger); }
+        .aviso-turma {
+            padding: 16px 20px;
+            background: #fef3c7;
+            border-left: 4px solid var(--warning);
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #92400e;
+        }
+        .badge-presente {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-falta {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-entregue {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-pendente {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--gray-100);
+        }
+        .modal-header h3 { margin: 0; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--gray-400);
+        }
+        .modal-close:hover { color: var(--gray-600); }
+        .entrega-nota-input {
+            width: 60px;
+            padding: 4px 6px;
+            border: 1px solid var(--gray-200);
+            border-radius: 4px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .entrega-comentario-input {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid var(--gray-200);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <div class="logo-icon">📚</div>
+                <div class="logo-text">
+                    Escola Modelo
+                    <small>Plataforma de Gestão</small>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-avatar">P</div>
+                    <div>
+                        <div class="user-name" id="professorNome">Professor</div>
+                        <div class="user-role">👨‍🏫 Professor</div>
+                    </div>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="logout()"
+                    style="border-color: rgba(255,255,255,0.3); color: white;">
+                    Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <main class="container" style="padding-top: 24px; padding-bottom: 40px;">
+
+        <!-- Aviso se não tiver turmas -->
+        <div id="avisoTurmas" class="aviso-turma" style="display: none;">
+            ⚠️ <strong>Não tem turmas atribuídas.</strong> Contacte a administração da escola.
+        </div>
+
+        <!-- Selector de Turma -->
+        <div class="turma-selector" id="turmaSelector" style="display: none;">
+            <label>🏫 Turma:</label>
+            <select id="selectTurma"></select>
+            <div class="turma-info" id="turmaInfo"></div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalAlunos">0</div>
+                <div class="stat-label">👨‍🎓 Alunos na Turma</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="faltasMes">0</div>
+                <div class="stat-label">📊 Faltas Registadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="mediaTurma">-</div>
+                <div class="stat-label">📈 Média da Turma</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalDisciplinas">0</div>
+                <div class="stat-label">📚 Disciplinas</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="alunos">👨‍🎓 Alunos</button>
+            <button class="tab-btn" data-tab="presencas">✅ Presenças</button>
+            <button class="tab-btn" data-tab="historico">📅 Histórico</button>
+            <button class="tab-btn" data-tab="notas">📊 Notas</button>
+            <button class="tab-btn" data-tab="tpc">📝 TPCs</button>
+            <button class="tab-btn" data-tab="mensagens">💬 Mensagens</button>
+        </div>
+
+        <!-- TAB: Alunos -->
+        <div class="tab-content active" id="tabAlunos">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">👨‍🎓 Lista de Alunos</h3>
+                    <button class="btn btn-success btn-sm" onclick="exportarCSV()">📥 Exportar CSV</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Telefone</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alunosTable">
+                            <tr>
+                                <td colspan="4" class="text-center">Selecione uma turma</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Presenças -->
+        <div class="tab-content" id="tabPresencas">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">✅ Marcar Presenças</h3>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <select class="form-control" id="disciplinaPresenca" style="width: auto; min-width: 180px;">
+                            <option value="">Disciplina...</option>
+                        </select>
+                        <input type="date" class="form-control" id="dataPresenca" style="width: auto;">
+                        <button class="btn btn-success btn-sm" onclick="marcarTodosPresentes()">✅ Marcar Todos</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nome</th>
+                                <th>Presença</th>
+                            </tr>
+                        </thead>
+                        <tbody id="presencasTable">
+                            <tr>
+                                <td colspan="3" class="text-center">Selecione uma turma</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-primary mt-4" onclick="salvarPresencas()">💾 Salvar Presenças</button>
+            </div>
+        </div>
+
+        <!-- TAB: Histórico de Presenças -->
+        <div class="tab-content" id="tabHistorico">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📅 Histórico de Presenças</h3>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <select class="form-control" id="historicoDisciplina" style="width: auto; min-width: 180px;" onchange="carregarHistoricoPresencas()">
+                            <option value="">Todas as Disciplinas</option>
+                        </select>
+                        <select class="form-control" id="historicoAluno" style="width: auto; min-width: 180px;" onchange="carregarHistoricoPresencas()">
+                            <option value="">Todos os Alunos</option>
+                        </select>
+                        <select class="form-control" id="historicoMes" style="width: auto; min-width: 130px;" onchange="carregarHistoricoPresencas()">
+                            <option value="">Todos os Meses</option>
+                            <option value="01">Janeiro</option>
+                            <option value="02">Fevereiro</option>
+                            <option value="03">Março</option>
+                            <option value="04">Abril</option>
+                            <option value="05">Maio</option>
+                            <option value="06">Junho</option>
+                            <option value="07">Julho</option>
+                            <option value="08">Agosto</option>
+                            <option value="09">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                        <button class="btn btn-success btn-sm" onclick="carregarHistoricoPresencas()">🔄 Atualizar</button>
+                    </div>
+                </div>
+
+                <!-- Estatísticas -->
+                <div id="historicoStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; padding: 12px 16px; background: var(--gray-50); border-radius: var(--radius);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 20px; font-weight: 700; color: var(--primary);" id="histTotal">-</div>
+                        <div style="font-size: 12px; color: var(--gray-500);">📊 Total</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 20px; font-weight: 700; color: var(--success);" id="histPresencas">-</div>
+                        <div style="font-size: 12px; color: var(--gray-500);">✅ Presenças</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 20px; font-weight: 700; color: var(--danger);" id="histFaltas">-</div>
+                        <div style="font-size: 12px; color: var(--gray-500);">❌ Faltas</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 20px; font-weight: 700; color: var(--secondary);" id="histPercentual">-</div>
+                        <div style="font-size: 12px; color: var(--gray-500);">📈 Assiduidade</div>
+                    </div>
+                </div>
+
+                <!-- Tabela -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Aluno</th>
+                                <th>Disciplina</th>
+                                <th>Turma</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historicoPresencasTable">
+                            <tr>
+                                <td colspan="5" class="text-center">Selecione uma turma</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Notas -->
+        <div class="tab-content" id="tabNotas">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📊 Lançar Notas</h3>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <select class="form-control" id="disciplinaNota" style="width: auto; min-width: 180px;">
+                            <option value="">Disciplina...</option>
+                        </select>
+                        <select class="form-control" id="trimestreNota" style="width: auto; min-width: 130px;">
+                            <option value="1">1º Trimestre</option>
+                            <option value="2">2º Trimestre</option>
+                            <option value="3">3º Trimestre</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="padding: 12px 16px; font-size: 13px; color: var(--gray-600); background: var(--gray-50); border-radius: 8px; margin-bottom: 16px;">
+                    💡 <strong>Fórmula da Média:</strong> (ACS1 × 30%) + (ACS2 × 30%) + (AT × 40%)
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nome</th>
+                                <th>ACS1 (30%)</th>
+                                <th>ACS2 (30%)</th>
+                                <th>AT (40%)</th>
+                                <th>Média</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notasTable">
+                            <tr>
+                                <td colspan="6" class="text-center">Selecione disciplina e trimestre</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-primary mt-4" onclick="salvarNotas()">💾 Salvar Notas</button>
+            </div>
+        </div>
+
+        <!-- TAB: TPCs -->
+        <div class="tab-content" id="tabTpc">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📝 Publicar TPC</h3>
+                </div>
+                <form id="tpcForm">
+                    <div class="form-group">
+                        <label class="form-label">Disciplina</label>
+                        <select class="form-control" id="tpcDisciplina" required>
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Título</label>
+                        <input type="text" class="form-control" id="tpcTitulo"
+                            placeholder="Ex: Exercícios de Matemática" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-control" id="tpcDescricao" placeholder="Descreva a atividade..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data de Entrega</label>
+                        <input type="date" class="form-control" id="tpcData" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">📤 Publicar TPC</button>
+                </form>
+                <hr style="margin: 24px 0; border-color: var(--gray-200);">
+                <h4 style="margin-bottom: 12px;">📋 TPCs Publicados</h4>
+                <div id="tpcLista">
+                    <div class="empty-msg">Sem TPCs publicados</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: Mensagens -->
+        <div class="tab-content" id="tabMensagens">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">💬 Enviar Mensagem</h3>
+                </div>
+                <form id="mensagemForm">
+                    <div class="form-group">
+                        <label class="form-label">Para</label>
+                        <select class="form-control" id="mensagemDestino">
+                            <option value="turma">🏫 Toda a Turma</option>
+                            <option value="todos_pais">👨‍👦 Todos os Pais</option>
+                            <option value="todos_alunos">👨‍🎓 Todos os Alunos</option>
+                            <option value="pais_alunos">👨‍👦👨‍🎓 Pais e Alunos</option>
+                            <option value="aluno_especifico">👨‍🎓 Aluno Específico</option>
+                            <option value="pai_especifico">👨‍👦 Pai Específico</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="alunoEspecificoGroup" style="display: none;">
+                        <label class="form-label">Selecionar Aluno</label>
+                        <select class="form-control" id="alunoSelect">
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="paiEspecificoGroup" style="display: none;">
+                        <label class="form-label">Selecionar Pai</label>
+                        <select class="form-control" id="paiSelect">
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Assunto</label>
+                        <input type="text" class="form-control" id="mensagemAssunto"
+                            placeholder="Assunto da mensagem" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Conteúdo</label>
+                        <textarea class="form-control" id="mensagemConteudo"
+                            placeholder="Escreva sua mensagem..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">📤 Enviar Mensagem</button>
+                </form>
+                <hr style="margin: 24px 0; border-color: var(--gray-200);">
+                <h4 style="margin-bottom: 12px;">📩 Mensagens Enviadas</h4>
+                <div id="mensagensLista">
+                    <div class="empty-msg">Sem mensagens enviadas</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ===== MODAL: ENTREGAS DE TPC ===== -->
+    <div class="modal-overlay" id="modalEntregas">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitulo">📝 Entregas do TPC</h3>
+                <button class="modal-close" onclick="fecharModalEntregas()">&times;</button>
+            </div>
+
+            <div id="modalTpcInfo" style="margin-bottom: 16px; padding: 12px 16px; background: var(--gray-50); border-radius: var(--radius);"></div>
+
+            <div id="modalStats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;"></div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Aluno</th>
+                            <th>Estado</th>
+                            <th>Nota</th>
+                            <th>Comentário</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="entregasTable">
+                        <tr><td colspan="6" class="text-center">A carregar...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="srcpt.js"></script>
+    <script src="dashbord_professor.js"></script>
+</body>
+
+</html>

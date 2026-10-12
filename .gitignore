@@ -1,0 +1,40 @@
+# Dependências
+node_modules/
+package-lock.json
+
+# Base de dados (contém dados sensíveis!)
+database/
+*.db
+*.sqlite
+*.sqlite3
+
+# Variáveis de ambiente (segredos!)
+.env
+.env.local
+.env.production
+
+# Uploads
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Backups
+*.bak
+*.backup
+
+# Outros
+coverage/
+.nyc_output/
+dist/
+build/

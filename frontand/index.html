@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escola Modelo - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="logo-icon" style="margin: 0 auto 12px;">📚</div>
+                <h1>Escola Modelo</h1>
+                <p>Plataforma de Gestão Escolar</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Senha</label>
+                    <input type="password" class="form-control" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full btn-lg">Entrar</button>
+            </form>
+
+            <div class="login-demo">
+                <p>🔬 Modo de Demonstração para a Feira</p>
+                <div class="demo-buttons">
+                    <button class="btn btn-secondary btn-sm" onclick="loginDemo('professor')">
+                        👨‍🏫 Entrar como Professor
+                    </button>
+                    <button class="btn btn-outline btn-sm" onclick="loginDemo('pai')">
+                        👨‍👦 Entrar como Pai
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="loginDemo('admin')">
+                        👨‍💼 Entrar como Admin
+                    </button>
+                    <button class="btn btn-success btn-sm" onclick="loginDemo('aluno')">
+                        👨‍🎓 Entrar como Aluno
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="srcpt.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Pai</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .filho-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 12px 16px;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .filho-selector label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .filho-selector select {
+            padding: 8px 12px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            min-width: 250px;
+        }
+        .filho-info {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+        }
+        .filho-info .avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .nota-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .nota-item:last-child { border-bottom: none; }
+        .nota-item .disciplina {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .nota-item .notas-detalhe {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+        .nota-item .media {
+            font-weight: 700;
+            font-size: 18px;
+            min-width: 50px;
+            text-align: right;
+        }
+        .media-boa { color: var(--success); }
+        .media-fraca { color: var(--danger); }
+        .mensagem-pai {
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-left: 4px solid var(--secondary);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+        }
+        .mensagem-pai .remetente {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .mensagem-pai .assunto {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 14px;
+        }
+        .mensagem-pai .conteudo {
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .mensagem-pai .data {
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-top: 4px;
+        }
+        .tpc-pai {
+            padding: 12px 16px;
+            border-left: 4px solid var(--warning);
+            background: var(--gray-50);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+        }
+        .tpc-pai .titulo {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .tpc-pai .descricao {
+            font-size: 14px;
+            color: var(--gray-600);
+            margin-top: 4px;
+        }
+        .tpc-pai .data {
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-top: 6px;
+        }
+        .empty-msg {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+        .empty-msg .icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+        .badge-presente {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-falta {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-entregue {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-pendente {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--gray-100);
+        }
+        .modal-header h3 { margin: 0; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--gray-400);
+        }
+        .modal-close:hover { color: var(--gray-600); }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <div class="logo-icon">📚</div>
+                <div class="logo-text">
+                    Escola Modelo
+                    <small>Portal do Pai</small>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-avatar">P</div>
+                    <div>
+                        <div class="user-name" id="paiNome">Pai</div>
+                        <div class="user-role">👨‍👦 Responsável</div>
+                    </div>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="logout()"
+                    style="border-color: rgba(255,255,255,0.3); color: white;">
+                    Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <main class="container" style="padding-top: 24px; padding-bottom: 40px;">
+
+        <!-- Selector de Filho -->
+        <div class="filho-selector" id="filhoSelector" style="display: none;">
+            <label>👨‍👦 Selecionar Filho:</label>
+            <select id="selectFilho"></select>
+        </div>
+
+        <!-- Info do Filho -->
+        <div class="filho-info" id="filhoInfo" style="display: none;">
+            <div class="avatar" id="filhoAvatar">J</div>
+            <div>
+                <div style="font-weight: 600; font-size: 16px;" id="filhoNome">-</div>
+                <div style="font-size: 13px; color: var(--gray-500);" id="filhoTurma">-</div>
+            </div>
+        </div>
+
+        <!-- Notificações -->
+        <div id="notificacoesContainer" style="margin-bottom: 24px;"></div>
+
+        <!-- Stats do Aluno -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="mediaGeral">-</div>
+                <div class="stat-label">📈 Média Geral</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="presencasTotal">-</div>
+                <div class="stat-label">✅ Presenças</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="faltasTotal">-</div>
+                <div class="stat-label">❌ Faltas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="tpcPendentesPai">-</div>
+                <div class="stat-label">📝 TPCs</div>
+            </div>
+        </div>
+
+        <!-- Grid 2 colunas -->
+        <div class="grid grid-2" style="gap: 24px;">
+
+            <!-- Gráfico de Presenças -->
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 16px;">📊 Presenças - Últimos 7 Registos</h3>
+                <div class="chart-container">
+                    <div class="chart-bars" id="chartPresencas">
+                        <div class="empty-msg">Sem dados de presenças</div>
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 24px; margin-top: 12px; font-size: 13px;">
+                        <span>
+                            <span style="display:inline-block; width:12px; height:12px; background:var(--success); border-radius:3px;"></span>
+                            Presente
+                        </span>
+                        <span>
+                            <span style="display:inline-block; width:12px; height:12px; background:var(--danger); border-radius:3px;"></span>
+                            Falta
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notas por Disciplina -->
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 16px;">📊 Notas por Disciplina</h3>
+                <div id="notasDisciplinas">
+                    <div class="empty-msg">
+                        <div class="icon">📊</div>
+                        <p>Sem notas lançadas</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TPCs Pendentes -->
+        <div class="card" style="margin-top: 24px;">
+            <h3 class="card-title" style="margin-bottom: 16px;">📝 TPCs Pendentes</h3>
+            <div id="tpcPendentesLista">
+                <div class="empty-msg">
+                    <div class="icon">📝</div>
+                    <p>Sem TPCs pendentes</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensagens do Professor -->
+        <div class="card" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                <h3 class="card-title" style="margin: 0;">💬 Mensagens do Professor</h3>
+                <button class="btn btn-primary btn-sm" onclick="abrirModalNovaMensagem()">✉️ Nova Conversa</button>
+            </div>
+            <div id="mensagensListaPai">
+                <div class="empty-msg">
+                    <div class="icon">💬</div>
+                    <p>Sem mensagens</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== HISTÓRICO DE PRESENÇAS ===== -->
+        <div class="card" style="margin-top: 24px;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--gray-100);">
+                <h3 class="card-title" style="margin: 0;">📅 Histórico de Presenças</h3>
+            </div>
+
+            <!-- Filtros -->
+            <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                <select class="form-control" id="filtroDisciplinaPresenca" style="max-width: 200px;" onchange="carregarHistoricoPresencas()">
+                    <option value="">Todas as Disciplinas</option>
+                </select>
+                <select class="form-control" id="filtroMesPresenca" style="max-width: 150px;" onchange="carregarHistoricoPresencas()">
+                    <option value="">Todos os Meses</option>
+                    <option value="01">Janeiro</option>
+                    <option value="02">Fevereiro</option>
+                    <option value="03">Março</option>
+                    <option value="04">Abril</option>
+                    <option value="05">Maio</option>
+                    <option value="06">Junho</option>
+                    <option value="07">Julho</option>
+                    <option value="08">Agosto</option>
+                    <option value="09">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+                <select class="form-control" id="filtroAnoPresenca" style="max-width: 120px;" onchange="carregarHistoricoPresencas()">
+                    <option value="">Todos os Anos</option>
+                    <option value="2026" selected>2026</option>
+                    <option value="2025">2025</option>
+                </select>
+            </div>
+
+            <!-- Estatísticas do Histórico -->
+            <div id="statsHistorico" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px; padding: 12px 16px; background: var(--gray-50); border-radius: var(--radius);">
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: var(--primary);" id="histTotal">-</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">📊 Total</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: var(--success);" id="histPresencas">-</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">✅ Presenças</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: var(--danger);" id="histFaltas">-</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">❌ Faltas</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: var(--secondary);" id="histPercentual">-</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">📈 Assiduidade</div>
+                </div>
+            </div>
+
+            <!-- Tabela de Presenças -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Disciplina</th>
+                            <th>Turma</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historicoPresencasTable">
+                        <tr>
+                            <td colspan="4" class="text-center" style="color: var(--gray-400);">Sem presenças registadas</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== MODAL: CONVERSA ===== -->
+        <div class="modal-overlay" id="modalConversa">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 id="modalConversaTitulo">💬 Conversa</h3>
+                    <button class="modal-close" onclick="fecharModalConversa()">&times;</button>
+                </div>
+
+                <div id="conversaMensagens" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; padding: 8px 0;">
+                    <div class="empty-msg">A carregar...</div>
+                </div>
+
+                <form id="formResponder" style="display: flex; gap: 8px;">
+                    <textarea class="form-control" id="respostaConteudo" placeholder="Escreva sua resposta..." style="flex: 1; min-height: 60px; resize: vertical;" required></textarea>
+                    <button type="submit" class="btn btn-primary" style="align-self: flex-end;">📤 Enviar</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ===== MODAL: NOVA MENSAGEM ===== -->
+        <div class="modal-overlay" id="modalNovaMensagem">
+            <div class="modal" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3>✉️ Nova Conversa</h3>
+                    <button class="modal-close" onclick="fecharModalNovaMensagem()">&times;</button>
+                </div>
+
+                <form id="formNovaMensagem">
+                    <div class="form-group">
+                        <label class="form-label">Para (Professor)</label>
+                        <select class="form-control" id="novaMensagemDestino" required>
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Assunto</label>
+                        <input type="text" class="form-control" id="novaMensagemAssunto" placeholder="Assunto" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Conteúdo</label>
+                        <textarea class="form-control" id="novaMensagemConteudo" placeholder="Escreva sua mensagem..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full">📤 Enviar Mensagem</button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="srcpt.js"></script>
+    <script src="dash_Board_pai.js"></script>
+</body>
+
+</html>
