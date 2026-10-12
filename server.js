@@ -206,12 +206,12 @@ async function initDatabase() {
     // Criar admin padrão
     const admin = await db.get('SELECT * FROM usuarios WHERE email = ?', ['admin@escola.com']);
     if (!admin) {
-      const senhaHash = await bcrypt.hash('admin123', 10);
+      const senhaHash = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 10);
       await db.run(
         `INSERT INTO usuarios (nome, email, senha, tipo) VALUES (?, ?, ?, ?)`,
         ['Administrador', 'admin@escola.com', senhaHash, 'admin']
       );
-      console.log('✅ Admin criado: admin@escola.com / admin123');
+      console.log('✅ Admin criado: admin@escola.com / [senha protegida]');
     }
 
     // Criar professor padrão
