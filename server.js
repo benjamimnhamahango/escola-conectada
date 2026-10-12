@@ -4,13 +4,13 @@ const sqlite3 = require('sqlite3').verbose();
 const { open } = require('sqlite');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const cors = require('cors'); 
+const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT || 3000; 
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -28,19 +28,29 @@ let db;
 // ===== FUNÇÃO PARA INICIALIZAR BANCO =====
 async function initDatabase() {
   try {
-    const dbDir = path.join(__dirname, 'database');
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
-    }
+    // ✅ CORREÇÃO PARA RENDER: usar DB_PATH se definido
+    let dbPath;
 
-    const dbPath = path.join(dbDir, 'edupage.db');
+    if (process.env.DB_PATH) {
+      dbPath = process.env.DB_PATH;
+      const dbDir = path.dirname(dbPath);
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+      }
+    } else {
+      const dbDir = path.join(__dirname, 'database');
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+      }
+      dbPath = path.join(dbDir, 'edupage.db');
+    }
 
     db = await open({
       filename: dbPath,
       driver: sqlite3.Database
     });
 
-    console.log('✅ Conectado ao banco SQLite');
+    console.log('✅ Conectado ao banco SQLite em:', dbPath);
 
     await db.exec(`
       CREATE TABLE IF NOT EXISTS usuarios (
@@ -131,6 +141,24 @@ async function initDatabase() {
         FOREIGN KEY (disciplina_id) REFERENCES disciplinas(id) ON DELETE CASCADE,
         FOREIGN KEY (turma_id) REFERENCES turmas(id) ON DELETE CASCADE,
         FOREIGN KEY (professor_id) REFERENCES usuarios(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS tpc_entregas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tpc_id INTEGER NOT NULL,
+        aluno_id INTEGER NOT NULL,
+        entregue BOOLEAN DEFAULT 0,
+        data_entrega DATETIME,
+        nota DECIMAL(4,2) CHECK(nota >= 0 AND nota <= 20),
+        comentario TEXT,
+        marcado_por INTEGER,
+        marcado_professor BOOLEAN DEFAULT 0,
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+        atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (tpc_id) REFERENCES tpc(id) ON DELETE CASCADE,
+        FOREIGN KEY (aluno_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+        FOREIGN KEY (marcado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
+        UNIQUE(tpc_id, aluno_id)
       );
 
       CREATE TABLE IF NOT EXISTS mensagens (
@@ -954,7 +982,6 @@ app.get('/api/professor/turma/:turmaId/alunos', autenticar, async (req, res) => 
 
 // ===== ROTAS DO PROFESSOR (COM FILTRO POR DISCIPLINA) =====
 
-// Função auxiliar: Verificar se o professor leciona a disciplina
 async function professorLecionaDisciplina(professorId, disciplinaId, turmaId) {
   const alocacao = await db.get(`
     SELECT * FROM professor_disciplina_turma 
@@ -963,7 +990,6 @@ async function professorLecionaDisciplina(professorId, disciplinaId, turmaId) {
   return !!alocacao;
 }
 
-// Presenças de uma disciplina específica (só do professor)
 app.get('/api/professor/presencas/:turmaId/:disciplinaId', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'professor' && req.usuario.tipo !== 'admin') {
@@ -1000,7 +1026,6 @@ app.get('/api/professor/presencas/:turmaId/:disciplinaId', autenticar, async (re
   }
 });
 
-// Estatísticas de presenças por disciplina e turma
 app.get('/api/professor/presencas/:turmaId/:disciplinaId/estatisticas', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'professor' && req.usuario.tipo !== 'admin') {
@@ -1052,7 +1077,6 @@ app.get('/api/professor/presencas/:turmaId/:disciplinaId/estatisticas', autentic
   }
 });
 
-// Notas de uma disciplina específica (só do professor)
 app.get('/api/professor/notas/:turmaId/:disciplinaId', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'professor' && req.usuario.tipo !== 'admin') {
@@ -1126,7 +1150,6 @@ app.get('/api/professor/notas/:turmaId/:disciplinaId', autenticar, async (req, r
   }
 });
 
-// TPCs do professor (só os que ele criou)
 app.get('/api/professor/tpc', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'professor' && req.usuario.tipo !== 'admin') {
@@ -1169,7 +1192,6 @@ app.get('/api/professor/tpc', autenticar, async (req, res) => {
   }
 });
 
-// Verificar quais alunos entregaram um TPC
 app.get('/api/professor/tpc/:tpcId/entregas', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'professor' && req.usuario.tipo !== 'admin') {
@@ -1195,23 +1217,41 @@ app.get('/api/professor/tpc/:tpcId/entregas', autenticar, async (req, res) => {
       ORDER BY u.nome
     `, [tpc.turma_id]);
 
-    const resultado = alunos.map(aluno => ({
-      aluno_id: aluno.id,
-      aluno_nome: aluno.nome,
-      aluno_email: aluno.email,
-      entregue: false,
-      data_entrega: null,
-      nota: null
-    }));
+    const entregas = await db.all(`
+      SELECT * FROM tpc_entregas WHERE tpc_id = ?
+    `, [tpcId]);
+
+    const resultado = alunos.map(aluno => {
+      const entrega = entregas.find(e => e.aluno_id === aluno.id);
+
+      return {
+        aluno_id: aluno.id,
+        aluno_nome: aluno.nome,
+        aluno_email: aluno.email,
+        entregue: entrega ? entrega.entregue === 1 : false,
+        marcado_professor: entrega ? entrega.marcado_professor === 1 : false,
+        data_entrega: entrega ? entrega.data_entrega : null,
+        nota: entrega ? entrega.nota : null,
+        comentario: entrega ? entrega.comentario : null,
+        entrega_id: entrega ? entrega.id : null
+      };
+    });
 
     res.json({
       tpc: {
         id: tpc.id,
         titulo: tpc.titulo,
         descricao: tpc.descricao,
-        data_entrega: tpc.data_entrega
+        data_entrega: tpc.data_entrega,
+        disciplina_id: tpc.disciplina_id,
+        turma_id: tpc.turma_id
       },
-      entregas: resultado
+      entregas: resultado,
+      stats: {
+        total: alunos.length,
+        entregues: resultado.filter(r => r.entregue).length,
+        pendentes: resultado.filter(r => !r.entregue).length
+      }
     });
   } catch (error) {
     console.error('Erro ao buscar entregas:', error);
@@ -1685,13 +1725,11 @@ app.post('/api/mensagens', autenticar, async (req, res) => {
   }
 });
 
-// ✅ CORRIGIDO: Inclui mensagens diretas + mensagens da turma do aluno
 app.get('/api/mensagens/recebidas', autenticar, async (req, res) => {
   try {
     const meuId = req.usuario.id;
     const meuTipo = req.usuario.tipo;
 
-    // Descobrir turma do aluno (se for aluno)
     let turmaId = null;
     if (meuTipo === 'aluno') {
       const matricula = await db.get(`
@@ -1777,7 +1815,6 @@ app.put('/api/mensagens/:id/lida', autenticar, async (req, res) => {
   }
 });
 
-// ===== CONVERSA ENTRE DOIS UTILIZADORES =====
 app.get('/api/mensagens/conversa/:userId', autenticar, async (req, res) => {
   try {
     const meuId = req.usuario.id;
@@ -1809,7 +1846,6 @@ app.get('/api/mensagens/conversa/:userId', autenticar, async (req, res) => {
   }
 });
 
-// ===== RESPONDER A UMA MENSAGEM =====
 app.post('/api/mensagens/responder/:id', autenticar, async (req, res) => {
   try {
     const { id } = req.params;
@@ -1853,7 +1889,6 @@ app.post('/api/mensagens/responder/:id', autenticar, async (req, res) => {
   }
 });
 
-// ===== LISTAR PROFESSORES DA TURMA DO ALUNO =====
 app.get('/api/aluno/professores', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'aluno') {
@@ -1862,7 +1897,6 @@ app.get('/api/aluno/professores', autenticar, async (req, res) => {
 
     const alunoId = req.usuario.id;
 
-    // Buscar turma ativa do aluno
     const matricula = await db.get(`
       SELECT turma_id FROM matriculas 
       WHERE aluno_id = ? AND status = 'ativa' 
@@ -1872,7 +1906,6 @@ app.get('/api/aluno/professores', autenticar, async (req, res) => {
     let professores = [];
 
     if (matricula) {
-      // Professores alocados à turma do aluno
       professores = await db.all(`
         SELECT DISTINCT
           u.id,
@@ -1887,7 +1920,6 @@ app.get('/api/aluno/professores', autenticar, async (req, res) => {
       `, [matricula.turma_id]);
     }
 
-    // Fallback: se não houver professores alocados, devolve TODOS os professores
     if (professores.length === 0) {
       professores = await db.all(`
         SELECT 
@@ -1901,17 +1933,15 @@ app.get('/api/aluno/professores', autenticar, async (req, res) => {
       `);
     }
 
-    console.log(`📚 Professores para aluno ${alunoId}:`, professores.length);
     res.json(professores);
-
   } catch (error) {
     console.error('Erro ao buscar professores do aluno:', error);
     res.status(500).json({ erro: 'Erro ao buscar professores' });
   }
 });
-// ===== ROTAS DO ADMIN (ESTATÍSTICAS / NOTAS / PRESENÇAS / COMUNICADOS) =====
 
-// Estatísticas de uma turma
+// ===== ROTAS DO ADMIN =====
+
 app.get('/api/admin/estatisticas-turma/:turmaId', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'admin') {
@@ -2009,7 +2039,6 @@ app.get('/api/admin/estatisticas-turma/:turmaId', autenticar, async (req, res) =
   }
 });
 
-// Notas completas de uma turma + disciplina
 app.get('/api/admin/notas-turma/:turmaId/:disciplinaId', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'admin') {
@@ -2072,7 +2101,6 @@ app.get('/api/admin/notas-turma/:turmaId/:disciplinaId', autenticar, async (req,
   }
 });
 
-// Presenças de uma turma
 app.get('/api/admin/presencas-turma/:turmaId', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'admin') {
@@ -2107,7 +2135,6 @@ app.get('/api/admin/presencas-turma/:turmaId', autenticar, async (req, res) => {
   }
 });
 
-// Destinatários para o admin (professores e pais)
 app.get('/api/admin/destinatarios', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'admin') {
@@ -2144,7 +2171,6 @@ app.get('/api/admin/destinatarios', autenticar, async (req, res) => {
   }
 });
 
-// Enviar comunicado em massa (professores/pais/turma)
 app.post('/api/admin/comunicado', autenticar, async (req, res) => {
   try {
     if (req.usuario.tipo !== 'admin') {
@@ -2230,8 +2256,9 @@ app.use((err, req, res, next) => {
 async function startServer() {
   await initDatabase();
 
-  app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+  // ✅ CORREÇÃO PARA RENDER: escutar em 0.0.0.0
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Servidor rodando em http://0.0.0.0:${PORT}`);
     console.log('\n📋 Credenciais:');
     console.log('  👨‍💼 Admin: admin@escola.com / admin123');
     console.log('  👨‍🏫 Professor: professor@escola.com / prof123');
