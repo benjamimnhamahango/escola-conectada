@@ -2,7 +2,7 @@
 // SCRIPT.JS - Funções Comuns
 // ========================================
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 let token = localStorage.getItem('token');
 let usuarioAtual = JSON.parse(localStorage.getItem('usuario') || 'null');
 
